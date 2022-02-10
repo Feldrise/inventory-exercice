@@ -10,6 +10,9 @@ import (
 var Cfg Config
 
 type Config struct {
+	Settings struct {
+		AuthKey string `yaml:"authKey"`
+	} `yaml:"settings"`
 	Database struct {
 		Name             string `yaml:"name"`
 		ConnectionString string `yaml:"connectionString"`

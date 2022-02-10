@@ -8,3 +8,7 @@ collections:
   inventories: "inventories"
   inventoryItems: "inventory_items"
   users: "users"
+
+# Settings
+settings:
+  authKey: "cbgCqUIVKfZook1AFiFZvFJVbOAYNKD4"
