@@ -7,6 +7,8 @@ import (
 
 	"feldrise.com/inventory-exercice/graph"
 	"feldrise.com/inventory-exercice/graph/generated"
+	"feldrise.com/inventory-exercice/internal/config"
+	"feldrise.com/inventory-exercice/internal/database"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 )
@@ -18,6 +20,9 @@ func main() {
 	if port == "" {
 		port = defaultPort
 	}
+
+	config.Init("config.yml")
+	database.Init()
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 
