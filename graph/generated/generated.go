@@ -35,6 +35,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Inventory() InventoryResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 }
@@ -77,6 +78,10 @@ type ComplexityRoot struct {
 	}
 }
 
+type InventoryResolver interface {
+	User(ctx context.Context, obj *model.Inventory) (*model.User, error)
+	Items(ctx context.Context, obj *model.Inventory) ([]*model.InventoryItem, error)
+}
 type MutationResolver interface {
 	CreateInventoryItem(ctx context.Context, input model.NewInventoryItem) (*model.InventoryItem, error)
 	CreateInventory(ctx context.Context, input *model.NewInventory) (*model.Inventory, error)
@@ -676,14 +681,14 @@ func (ec *executionContext) _Inventory_user(ctx context.Context, field graphql.C
 		Object:     "Inventory",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.User, nil
+		return ec.resolvers.Inventory().User(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -711,14 +716,14 @@ func (ec *executionContext) _Inventory_items(ctx context.Context, field graphql.
 		Object:     "Inventory",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Items, nil
+		return ec.resolvers.Inventory().Items(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2646,7 +2651,7 @@ func (ec *executionContext) _Inventory(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "name":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -2656,28 +2661,48 @@ func (ec *executionContext) _Inventory(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "user":
+			field := field
+
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Inventory_user(ctx, field, obj)
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Inventory_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
 
-			out.Values[i] = innerFunc(ctx)
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			})
 		case "items":
+			field := field
+
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Inventory_items(ctx, field, obj)
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Inventory_items(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
 
-			out.Values[i] = innerFunc(ctx)
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

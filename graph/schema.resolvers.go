@@ -9,7 +9,17 @@ import (
 
 	"feldrise.com/inventory-exercice/graph/generated"
 	"feldrise.com/inventory-exercice/graph/model"
+	"feldrise.com/inventory-exercice/internal/users"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
+
+func (r *inventoryResolver) User(ctx context.Context, obj *model.Inventory) (*model.User, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *inventoryResolver) Items(ctx context.Context, obj *model.Inventory) ([]*model.InventoryItem, error) {
+	panic(fmt.Errorf("not implemented"))
+}
 
 func (r *mutationResolver) CreateInventoryItem(ctx context.Context, input model.NewInventoryItem) (*model.InventoryItem, error) {
 	panic(fmt.Errorf("not implemented"))
@@ -20,7 +30,15 @@ func (r *mutationResolver) CreateInventory(ctx context.Context, input *model.New
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	existingUser, _ := users.GetUserByEmail(input.Email)
+
+	if existingUser != nil {
+		return nil, gqlerror.Errorf("a user with this email already exists")
+	}
+
+	databaseUser := users.Create(input)
+
+	return databaseUser.ToModel(), nil
 }
 
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
@@ -47,11 +65,15 @@ func (r *queryResolver) Inventory(ctx context.Context, id string) (*model.Invent
 	panic(fmt.Errorf("not implemented"))
 }
 
+// Inventory returns generated.InventoryResolver implementation.
+func (r *Resolver) Inventory() generated.InventoryResolver { return &inventoryResolver{r} }
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+type inventoryResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

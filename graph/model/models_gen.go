@@ -2,13 +2,6 @@
 
 package model
 
-type Inventory struct {
-	ID    string           `json:"id"`
-	Name  string           `json:"name"`
-	User  *User            `json:"user"`
-	Items []*InventoryItem `json:"items"`
-}
-
 type InventoryItem struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
