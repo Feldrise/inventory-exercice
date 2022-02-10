@@ -10,6 +10,7 @@ import (
 	"feldrise.com/inventory-exercice/graph/generated"
 	"feldrise.com/inventory-exercice/graph/model"
 	"feldrise.com/inventory-exercice/internal/users"
+	"feldrise.com/inventory-exercice/pkg/jwt"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
@@ -42,7 +43,25 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 }
 
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	isPasswordCorrect := users.Authenticate(input)
+
+	if !isPasswordCorrect {
+		return "", gqlerror.Errorf("wrong username or password")
+	}
+
+	user, err := users.GetUserByEmail(input.Email)
+
+	if user == nil || err != nil {
+		return "", err
+	}
+
+	token, err := jwt.GenerateToken(user.ID.Hex())
+
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func (r *mutationResolver) RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error) {

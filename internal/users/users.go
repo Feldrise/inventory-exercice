@@ -121,6 +121,16 @@ func GetFiltered(filter interface{}) ([]User, error) {
 	return users, nil
 }
 
+func Authenticate(login model.Login) bool {
+	user, err := GetUserByEmail(login.Email)
+
+	if user == nil || err != nil {
+		return false
+	}
+
+	return CheckPasswordHash(login.Password, user.PasswordHash)
+}
+
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 
