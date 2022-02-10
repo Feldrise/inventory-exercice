@@ -1,28 +1,63 @@
-# GraphQL schema example
-#
-# https://gqlgen.com/getting-started/
-
-type Todo {
-  id: ID!
-  text: String!
-  done: Boolean!
-  user: User!
-}
-
+# User stuff
 type User {
   id: ID!
+  email: String!
+}
+
+input NewUser {
+  email: String!
+  password: String!
+}
+
+input Login {
+  email: String!
+  password: String!
+}
+
+input RefreshTokenInput {
+  token: String!
+}
+
+# Inventories stuff
+type InventoryItem {
+  id: ID!
+  name: String!
+  quantity: Int!
+}
+
+input NewInventoryItem {
+  inventoryID: ID!
   name: String!
 }
 
-type Query {
-  todos: [Todo!]!
+type Inventory {
+  id: ID!
+  name: String!
+  user: User!
+  items: [InventoryItem!]!
 }
 
-input NewTodo {
-  text: String!
-  userId: String!
+input NewInventory {
+  name: String!
+}
+
+# Endpoints
+
+type Query {
+  inventoryItems(inventory: ID!): [InventoryItem!]!
+  inventoryItem(id: ID!): InventoryItem!
+
+  inventories: [Inventory!]!
+  inventory(id: ID!): Inventory!
 }
 
 type Mutation {
-  createTodo(input: NewTodo!): Todo!
+  # Inventories stuff
+  createInventoryItem(input: NewInventoryItem!): InventoryItem!
+  createInventory(input: NewInventory): Inventory!
+
+  # User stuff
+  createUser(input: NewUser!): User!
+  login(input: Login!): String!
+  refreshToken(input: RefreshTokenInput!): String!
 }

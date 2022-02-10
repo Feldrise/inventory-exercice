@@ -11,11 +11,39 @@ import (
 	"feldrise.com/inventory-exercice/graph/model"
 )
 
-func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
+func (r *mutationResolver) CreateInventoryItem(ctx context.Context, input model.NewInventoryItem) (*model.InventoryItem, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
+func (r *mutationResolver) CreateInventory(ctx context.Context, input *model.NewInventory) (*model.Inventory, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) InventoryItems(ctx context.Context, inventory string) ([]*model.InventoryItem, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) InventoryItem(ctx context.Context, id string) (*model.InventoryItem, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Inventories(ctx context.Context) ([]*model.Inventory, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Inventory(ctx context.Context, id string) (*model.Inventory, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
