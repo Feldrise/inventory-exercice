@@ -1,0 +1,10 @@
+# Database credential
+database:
+  name: "InventoryExercice"
+  connectionString: "mongodb://localhost:27017"
+
+# Collections name
+collections:
+  inventories: "inventories"
+  inventoryItems: "inventory_items"
+  users: "users"
