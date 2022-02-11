@@ -28,6 +28,7 @@ type InventoryItem {
 input NewInventoryItem {
   inventoryID: ID!
   name: String!
+  quantity: Int
 }
 
 type Inventory {
@@ -49,6 +50,9 @@ type Query {
 
   inventories: [Inventory!]!
   inventory(id: ID!): Inventory!
+
+  users: [User!]!
+  user(id: ID!): User!
 }
 
 type Mutation {

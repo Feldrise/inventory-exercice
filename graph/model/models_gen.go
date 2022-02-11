@@ -20,6 +20,7 @@ type NewInventory struct {
 type NewInventoryItem struct {
 	InventoryID string `json:"inventoryID"`
 	Name        string `json:"name"`
+	Quantity    *int   `json:"quantity"`
 }
 
 type NewUser struct {
