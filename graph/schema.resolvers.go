@@ -65,7 +65,19 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string
 }
 
 func (r *mutationResolver) RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	id, err := jwt.ParseToken(input.Token)
+
+	if err != nil {
+		return "", gqlerror.Errorf("access denied")
+	}
+
+	token, err := jwt.GenerateToken(id)
+
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func (r *queryResolver) InventoryItems(ctx context.Context, inventory string) ([]*model.InventoryItem, error) {
