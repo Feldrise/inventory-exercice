@@ -45,7 +45,6 @@ input NewInventory {
 # Endpoints
 
 type Query {
-  inventoryItems(inventory: ID!): [InventoryItem!]!
   inventoryItem(id: ID!): InventoryItem!
 
   inventories: [Inventory!]!

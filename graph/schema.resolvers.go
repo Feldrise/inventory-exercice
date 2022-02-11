@@ -135,10 +135,6 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 	return token, nil
 }
 
-func (r *queryResolver) InventoryItems(ctx context.Context, inventory string) ([]*model.InventoryItem, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 func (r *queryResolver) InventoryItem(ctx context.Context, id string) (*model.InventoryItem, error) {
 	user := auth.ForContext(ctx)
 
@@ -146,8 +142,28 @@ func (r *queryResolver) InventoryItem(ctx context.Context, id string) (*model.In
 		return nil, gqlerror.Errorf("access denied")
 	}
 
-	// TODO: do
-	panic(fmt.Errorf("not implemented"))
+	databaseItem, err := items.GetById(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if databaseItem == nil {
+		return nil, gqlerror.Errorf("there is no item matching this ID")
+	}
+
+	// We need to check the item actually belong to the user
+	databaseInventory, err := inventories.GetById(databaseItem.InventoryID.Hex())
+
+	if err != nil || databaseInventory == nil {
+		return nil, gqlerror.Errorf("it appears that the item's inventory can't be get")
+	}
+
+	if databaseInventory.UserID.Hex() != user.ID {
+		return nil, gqlerror.Errorf("you don't own this item")
+	}
+
+	return databaseItem.ToModel(), nil
 }
 
 func (r *queryResolver) Inventories(ctx context.Context) ([]*model.Inventory, error) {
@@ -165,7 +181,6 @@ func (r *queryResolver) Inventories(ctx context.Context) ([]*model.Inventory, er
 
 	inventories := []*model.Inventory{}
 
-	// TODO: get items
 	for _, databaseInventory := range databaseInventories {
 		inventory := databaseInventory.ToModel()
 
@@ -192,6 +207,10 @@ func (r *queryResolver) Inventory(ctx context.Context, id string) (*model.Invent
 		return nil, gqlerror.Errorf("there is no inventory with this id")
 	}
 
+	if databaseInventory.UserID.Hex() != user.ID {
+		return nil, gqlerror.Errorf("you don't own this inventory")
+	}
+
 	return databaseInventory.ToModel(), nil
 }
 
@@ -215,3 +234,45 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 type inventoryResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *queryResolver) InventoryItems(ctx context.Context, inventory string) ([]*model.InventoryItem, error) {
+	user := auth.ForContext(ctx)
+
+	if user == nil {
+		return nil, gqlerror.Errorf("access denied")
+	}
+
+	databaseInventory, err := inventories.GetById(inventory)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if databaseInventory == nil {
+		return nil, gqlerror.Errorf("the inventory doesn't exist")
+	}
+
+	if databaseInventory.UserID.Hex() != user.ID {
+		return nil, gqlerror.Errorf("You don't own this inventory")
+	}
+
+	databaseItems, err := items.GetAllForInventory(inventory)
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := []*model.InventoryItem{}
+
+	for _, item := range databaseItems {
+		items = append(items, item.ToModel())
+	}
+
+	return items, nil
+}

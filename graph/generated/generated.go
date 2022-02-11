@@ -66,12 +66,11 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Inventories    func(childComplexity int) int
-		Inventory      func(childComplexity int, id string) int
-		InventoryItem  func(childComplexity int, id string) int
-		InventoryItems func(childComplexity int, inventory string) int
-		User           func(childComplexity int, id string) int
-		Users          func(childComplexity int) int
+		Inventories   func(childComplexity int) int
+		Inventory     func(childComplexity int, id string) int
+		InventoryItem func(childComplexity int, id string) int
+		User          func(childComplexity int, id string) int
+		Users         func(childComplexity int) int
 	}
 
 	User struct {
@@ -92,7 +91,6 @@ type MutationResolver interface {
 	RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error)
 }
 type QueryResolver interface {
-	InventoryItems(ctx context.Context, inventory string) ([]*model.InventoryItem, error)
 	InventoryItem(ctx context.Context, id string) (*model.InventoryItem, error)
 	Inventories(ctx context.Context) ([]*model.Inventory, error)
 	Inventory(ctx context.Context, id string) (*model.Inventory, error)
@@ -255,18 +253,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.InventoryItem(childComplexity, args["id"].(string)), true
 
-	case "Query.inventoryItems":
-		if e.complexity.Query.InventoryItems == nil {
-			break
-		}
-
-		args, err := ec.field_Query_inventoryItems_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.InventoryItems(childComplexity, args["inventory"].(string)), true
-
 	case "Query.user":
 		if e.complexity.Query.User == nil {
 			break
@@ -411,7 +397,6 @@ input NewInventory {
 # Endpoints
 
 type Query {
-  inventoryItems(inventory: ID!): [InventoryItem!]!
   inventoryItem(id: ID!): InventoryItem!
 
   inventories: [Inventory!]!
@@ -541,21 +526,6 @@ func (ec *executionContext) field_Query_inventoryItem_args(ctx context.Context, 
 		}
 	}
 	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_inventoryItems_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["inventory"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inventory"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["inventory"] = arg0
 	return args, nil
 }
 
@@ -1095,48 +1065,6 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_inventoryItems(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_inventoryItems_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().InventoryItems(rctx, args["inventory"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.InventoryItem)
-	fc.Result = res
-	return ec.marshalNInventoryItem2ᚕᚖfeldriseᚗcomᚋinventoryᚑexerciceᚋgraphᚋmodelᚐInventoryItemᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_inventoryItem(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2991,29 +2919,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "inventoryItems":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_inventoryItems(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "inventoryItem":
 			field := field
 
