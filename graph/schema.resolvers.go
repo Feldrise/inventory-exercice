@@ -50,11 +50,6 @@ func (r *inventoryResolver) Items(ctx context.Context, obj *model.Inventory) ([]
 
 func (r *mutationResolver) CreateInventoryItem(ctx context.Context, input model.NewInventoryItem) (*model.InventoryItem, error) {
 	user := auth.ForContext(ctx)
-
-	if user == nil {
-		return nil, gqlerror.Errorf("access denied")
-	}
-
 	databaseInventory, err := inventories.GetById(input.InventoryID)
 
 	if err != nil {
@@ -76,11 +71,6 @@ func (r *mutationResolver) CreateInventoryItem(ctx context.Context, input model.
 
 func (r *mutationResolver) CreateInventory(ctx context.Context, input *model.NewInventory) (*model.Inventory, error) {
 	user := auth.ForContext(ctx)
-
-	if user == nil {
-		return nil, gqlerror.Errorf("access denied")
-	}
-
 	databaseInventory := inventories.Create(*input, user.ID)
 
 	return databaseInventory.ToModel(), nil
@@ -88,11 +78,6 @@ func (r *mutationResolver) CreateInventory(ctx context.Context, input *model.New
 
 func (r *mutationResolver) UpdateInventory(ctx context.Context, id string, changes map[string]interface{}) (*model.Inventory, error) {
 	user := auth.ForContext(ctx)
-
-	if user == nil {
-		return nil, gqlerror.Errorf("access denied")
-	}
-
 	databaseInventory, err := inventories.GetById(id)
 
 	if err != nil {
@@ -116,12 +101,6 @@ func (r *mutationResolver) UpdateInventory(ctx context.Context, id string, chang
 
 func (r *mutationResolver) UpdateInventoryItem(ctx context.Context, id string, changes map[string]interface{}) (*model.InventoryItem, error) {
 	// TODO: more security should be added
-	user := auth.ForContext(ctx)
-
-	if user == nil {
-		return nil, gqlerror.Errorf("access denied")
-	}
-
 	databaseItem, err := items.GetById(id)
 
 	if err != nil {
@@ -191,11 +170,6 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 
 func (r *queryResolver) InventoryItem(ctx context.Context, id string) (*model.InventoryItem, error) {
 	user := auth.ForContext(ctx)
-
-	if user == nil {
-		return nil, gqlerror.Errorf("access denied")
-	}
-
 	databaseItem, err := items.GetById(id)
 
 	if err != nil {
@@ -222,11 +196,6 @@ func (r *queryResolver) InventoryItem(ctx context.Context, id string) (*model.In
 
 func (r *queryResolver) Inventories(ctx context.Context) ([]*model.Inventory, error) {
 	user := auth.ForContext(ctx)
-
-	if user == nil {
-		return nil, gqlerror.Errorf("access denied")
-	}
-
 	databaseInventories, err := inventories.GetAllForUser(user.ID)
 
 	if err != nil {
@@ -246,11 +215,6 @@ func (r *queryResolver) Inventories(ctx context.Context) ([]*model.Inventory, er
 
 func (r *queryResolver) Inventory(ctx context.Context, id string) (*model.Inventory, error) {
 	user := auth.ForContext(ctx)
-
-	if user == nil {
-		return nil, gqlerror.Errorf("access denied")
-	}
-
 	databaseInventory, err := inventories.GetById(id)
 
 	if err != nil {

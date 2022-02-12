@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -41,6 +42,7 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	NeedAuthentication func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -378,7 +380,9 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "graph/schema.graphqls", Input: `# User stuff
+	{Name: "graph/schema.graphqls", Input: `directive @needAuthentication on FIELD_DEFINITION
+
+# User stuff
 type User {
   id: ID!
   email: String!
@@ -435,10 +439,10 @@ input ChangesInventory {
 # Endpoints
 
 type Query {
-  inventoryItem(id: ID!): InventoryItem!
+  inventoryItem(id: ID!): InventoryItem! @needAuthentication
 
-  inventories: [Inventory!]!
-  inventory(id: ID!): Inventory!
+  inventories: [Inventory!]! @needAuthentication
+  inventory(id: ID!): Inventory! @needAuthentication
 
   users: [User!]!
   user(id: ID!): User!
@@ -446,15 +450,15 @@ type Query {
 
 type Mutation {
   # Inventories stuff
-  createInventoryItem(input: NewInventoryItem!): InventoryItem!
-  createInventory(input: NewInventory): Inventory!
-  updateInventory(id: ID!, changes: ChangesInventory!): Inventory!
-  updateInventoryItem(id: ID!, changes: ChangesInventoryItem!): InventoryItem!
+  createInventoryItem(input: NewInventoryItem!): InventoryItem! @needAuthentication
+  createInventory(input: NewInventory): Inventory! @needAuthentication
+  updateInventory(id: ID!, changes: ChangesInventory!): Inventory! @needAuthentication
+  updateInventoryItem(id: ID!, changes: ChangesInventoryItem!): InventoryItem! @needAuthentication
 
   # User stuff
   createUser(input: NewUser!): User!
   login(input: Login!): String!
-  refreshToken(input: RefreshTokenInput!): String!
+  refreshToken(input: RefreshTokenInput!): String! @needAuthentication
 }
 `, BuiltIn: false},
 }
@@ -969,8 +973,28 @@ func (ec *executionContext) _Mutation_createInventoryItem(ctx context.Context, f
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateInventoryItem(rctx, args["input"].(model.NewInventoryItem))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateInventoryItem(rctx, args["input"].(model.NewInventoryItem))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.NeedAuthentication == nil {
+				return nil, errors.New("directive needAuthentication is not implemented")
+			}
+			return ec.directives.NeedAuthentication(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.InventoryItem); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *feldrise.com/inventory-exercice/graph/model.InventoryItem`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1011,8 +1035,28 @@ func (ec *executionContext) _Mutation_createInventory(ctx context.Context, field
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateInventory(rctx, args["input"].(*model.NewInventory))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateInventory(rctx, args["input"].(*model.NewInventory))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.NeedAuthentication == nil {
+				return nil, errors.New("directive needAuthentication is not implemented")
+			}
+			return ec.directives.NeedAuthentication(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Inventory); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *feldrise.com/inventory-exercice/graph/model.Inventory`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1053,8 +1097,28 @@ func (ec *executionContext) _Mutation_updateInventory(ctx context.Context, field
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateInventory(rctx, args["id"].(string), args["changes"].(map[string]interface{}))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateInventory(rctx, args["id"].(string), args["changes"].(map[string]interface{}))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.NeedAuthentication == nil {
+				return nil, errors.New("directive needAuthentication is not implemented")
+			}
+			return ec.directives.NeedAuthentication(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Inventory); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *feldrise.com/inventory-exercice/graph/model.Inventory`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1095,8 +1159,28 @@ func (ec *executionContext) _Mutation_updateInventoryItem(ctx context.Context, f
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateInventoryItem(rctx, args["id"].(string), args["changes"].(map[string]interface{}))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateInventoryItem(rctx, args["id"].(string), args["changes"].(map[string]interface{}))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.NeedAuthentication == nil {
+				return nil, errors.New("directive needAuthentication is not implemented")
+			}
+			return ec.directives.NeedAuthentication(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.InventoryItem); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *feldrise.com/inventory-exercice/graph/model.InventoryItem`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1221,8 +1305,28 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RefreshToken(rctx, args["input"].(model.RefreshTokenInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RefreshToken(rctx, args["input"].(model.RefreshTokenInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.NeedAuthentication == nil {
+				return nil, errors.New("directive needAuthentication is not implemented")
+			}
+			return ec.directives.NeedAuthentication(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1263,8 +1367,28 @@ func (ec *executionContext) _Query_inventoryItem(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().InventoryItem(rctx, args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().InventoryItem(rctx, args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.NeedAuthentication == nil {
+				return nil, errors.New("directive needAuthentication is not implemented")
+			}
+			return ec.directives.NeedAuthentication(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.InventoryItem); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *feldrise.com/inventory-exercice/graph/model.InventoryItem`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1298,8 +1422,28 @@ func (ec *executionContext) _Query_inventories(ctx context.Context, field graphq
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Inventories(rctx)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Inventories(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.NeedAuthentication == nil {
+				return nil, errors.New("directive needAuthentication is not implemented")
+			}
+			return ec.directives.NeedAuthentication(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.Inventory); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*feldrise.com/inventory-exercice/graph/model.Inventory`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1340,8 +1484,28 @@ func (ec *executionContext) _Query_inventory(ctx context.Context, field graphql.
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Inventory(rctx, args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Inventory(rctx, args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.NeedAuthentication == nil {
+				return nil, errors.New("directive needAuthentication is not implemented")
+			}
+			return ec.directives.NeedAuthentication(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Inventory); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *feldrise.com/inventory-exercice/graph/model.Inventory`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)

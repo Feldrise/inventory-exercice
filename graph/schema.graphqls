@@ -1,3 +1,5 @@
+directive @needAuthentication on FIELD_DEFINITION
+
 # User stuff
 type User {
   id: ID!
@@ -55,10 +57,10 @@ input ChangesInventory {
 # Endpoints
 
 type Query {
-  inventoryItem(id: ID!): InventoryItem!
+  inventoryItem(id: ID!): InventoryItem! @needAuthentication
 
-  inventories: [Inventory!]!
-  inventory(id: ID!): Inventory!
+  inventories: [Inventory!]! @needAuthentication
+  inventory(id: ID!): Inventory! @needAuthentication
 
   users: [User!]!
   user(id: ID!): User!
@@ -66,13 +68,13 @@ type Query {
 
 type Mutation {
   # Inventories stuff
-  createInventoryItem(input: NewInventoryItem!): InventoryItem!
-  createInventory(input: NewInventory): Inventory!
-  updateInventory(id: ID!, changes: ChangesInventory!): Inventory!
-  updateInventoryItem(id: ID!, changes: ChangesInventoryItem!): InventoryItem!
+  createInventoryItem(input: NewInventoryItem!): InventoryItem! @needAuthentication
+  createInventory(input: NewInventory): Inventory! @needAuthentication
+  updateInventory(id: ID!, changes: ChangesInventory!): Inventory! @needAuthentication
+  updateInventoryItem(id: ID!, changes: ChangesInventoryItem!): InventoryItem! @needAuthentication
 
   # User stuff
   createUser(input: NewUser!): User!
   login(input: Login!): String!
-  refreshToken(input: RefreshTokenInput!): String!
+  refreshToken(input: RefreshTokenInput!): String! @needAuthentication
 }

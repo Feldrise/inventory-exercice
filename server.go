@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,6 +12,7 @@ import (
 	"feldrise.com/inventory-exercice/internal/auth"
 	"feldrise.com/inventory-exercice/internal/config"
 	"feldrise.com/inventory-exercice/internal/database"
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
@@ -30,7 +33,18 @@ func main() {
 	config.Init("config.yml")
 	database.Init()
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+	c := generated.Config{Resolvers: &graph.Resolver{}}
+	c.Directives.NeedAuthentication = func(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
+		if auth.ForContext(ctx) == nil {
+			// block calling the next resolver
+			return nil, fmt.Errorf("access denied")
+		}
+
+		// or let it pass through
+		return next(ctx)
+	}
+
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", srv)
