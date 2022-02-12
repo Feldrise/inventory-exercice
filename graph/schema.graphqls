@@ -31,6 +31,12 @@ input NewInventoryItem {
   quantity: Int
 }
 
+input ChangesInventoryItem {
+  inventoryID: ID
+  name: String
+  quantity: Int
+}
+
 type Inventory {
   id: ID!
   name: String!
@@ -40,6 +46,10 @@ type Inventory {
 
 input NewInventory {
   name: String!
+}
+
+input ChangesInventory {
+  name: String
 }
 
 # Endpoints
@@ -58,6 +68,8 @@ type Mutation {
   # Inventories stuff
   createInventoryItem(input: NewInventoryItem!): InventoryItem!
   createInventory(input: NewInventory): Inventory!
+  updateInventory(id: ID!, changes: ChangesInventory!): Inventory!
+  updateInventoryItem(id: ID!, changes: ChangesInventoryItem!): InventoryItem!
 
   # User stuff
   createUser(input: NewUser!): User!

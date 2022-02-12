@@ -45,6 +45,22 @@ func Create(input model.NewInventory, userID string) *Inventory {
 	return &databaseInventory
 }
 
+func Update(changes *Inventory) {
+	filter := bson.D{
+		primitive.E{
+			Key:   "_id",
+			Value: changes.ID,
+		},
+	}
+
+	_, err := database.CollectionInventories.ReplaceOne(database.MongoContext, filter, changes)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}
+
 func GetAll() ([]Inventory, error) {
 	filter := bson.D{{}}
 

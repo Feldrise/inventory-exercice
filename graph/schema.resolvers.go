@@ -10,6 +10,7 @@ import (
 	"feldrise.com/inventory-exercice/graph/generated"
 	"feldrise.com/inventory-exercice/graph/model"
 	"feldrise.com/inventory-exercice/internal/auth"
+	"feldrise.com/inventory-exercice/internal/helper"
 	"feldrise.com/inventory-exercice/internal/inventories"
 	"feldrise.com/inventory-exercice/internal/inventories/items"
 	"feldrise.com/inventory-exercice/internal/users"
@@ -85,6 +86,59 @@ func (r *mutationResolver) CreateInventory(ctx context.Context, input *model.New
 	return databaseInventory.ToModel(), nil
 }
 
+func (r *mutationResolver) UpdateInventory(ctx context.Context, id string, changes map[string]interface{}) (*model.Inventory, error) {
+	user := auth.ForContext(ctx)
+
+	if user == nil {
+		return nil, gqlerror.Errorf("access denied")
+	}
+
+	databaseInventory, err := inventories.GetById(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if databaseInventory == nil {
+		return nil, gqlerror.Errorf("you are trying to update a non existing inventory")
+	}
+
+	if databaseInventory.UserID.Hex() != user.ID {
+		return nil, gqlerror.Errorf("you don't own this inventory")
+	}
+
+	helper.ApplyChanges(changes, databaseInventory)
+
+	inventories.Update(databaseInventory)
+
+	return databaseInventory.ToModel(), nil
+}
+
+func (r *mutationResolver) UpdateInventoryItem(ctx context.Context, id string, changes map[string]interface{}) (*model.InventoryItem, error) {
+	// TODO: more security should be added
+	user := auth.ForContext(ctx)
+
+	if user == nil {
+		return nil, gqlerror.Errorf("access denied")
+	}
+
+	databaseItem, err := items.GetById(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if databaseItem == nil {
+		return nil, gqlerror.Errorf("you are trying to update a non existing item")
+	}
+
+	helper.ApplyChanges(changes, databaseItem)
+
+	items.Update(databaseItem)
+
+	return databaseItem.ToModel(), nil
+}
+
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
 	existingUser, _ := users.GetUserByEmail(input.Email)
 
@@ -123,7 +177,7 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 	id, err := jwt.ParseToken(input.Token)
 
 	if err != nil {
-		return "", gqlerror.Errorf("access denied")
+		return "", err
 	}
 
 	token, err := jwt.GenerateToken(id)
