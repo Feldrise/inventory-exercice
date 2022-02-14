@@ -34,7 +34,7 @@ mutation createUser2 {
 # Token : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDQ2NjA4NzcsImlkIjoiNjIwNGY5YzM4NWEyZmE4ZWU5NzQzOTBmIn0.bgIgbylrgJWJ_mQydwgtI8WyeUq5TM9n1GeTlepo8ik
 mutation login1 {
   login(input: {
-    email: "admin@me.com",
+    email: "me1@me.com",
     password: "dE8bdTUE"
   })
 }
@@ -61,6 +61,12 @@ mutation failedLogin2 {
   })
 }
 
+mutation refreshToken {
+  refreshToken(input: {
+    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDQ2NjA4NzcsImlkIjoiNjIwNGY5YzM4NWEyZmE4ZWU5NzQzOTBmIn0.bgIgbylrgJWJ_mQydwgtI8WyeUq5TM9n1GeTlepo8ik"
+  })
+}
+
 #######################
 ## INVENTORIES STUFF ##
 #######################
@@ -71,12 +77,21 @@ mutation failedLogin2 {
 
 mutation createInventory {
   createInventory(input: {
-    name: "My first inventory"
+    name: "Inventory 2",
+    description: "This is the second inventory created"
   }) {
     name,
     user {
       email
     }
+  }
+}
+
+mutation updateInventory {
+  updateInventory(id: "620639c66d395c3f60a8463f", changes: {
+    name: "Updated Inventory"
+  }) {
+    name
   }
 }
 
@@ -89,19 +104,37 @@ query getInventories {
     user {
       email
     },
-    items {
-      name,
-      quantity
+    # To learn more about pagination : https://www.apollographql.com/blog/graphql/pagination/understanding-pagination-rest-graphql-and-relay/
+    items(first: 5) {
+      edges {
+        node {
+          name,
+          quantity
+        }
+      },
+      pageInfo {
+        startCursor,
+        endCursor
+      }
     }
   }
 }
 
 query getInventory {
-  inventory(id: "620639c66d395c3f60a8463f") {
+  inventory(id: "6208be109403b4405ad4c54d") {
     name,
-    items {
-      name,
-      quantity
+    # To learn more about pagination : https://www.apollographql.com/blog/graphql/pagination/understanding-pagination-rest-graphql-and-relay/
+    items(first: 5, after: "NjIwYTJjNTE3YjgxOTliOTgzMWRiNDlj") {
+      edges {
+        node {
+          name,
+          quantity
+        }
+      },
+      pageInfo {
+        startCursor,
+        endCursor
+      }
     }
   }
 }
@@ -117,6 +150,16 @@ mutation createItem {
     quantity: 5 # optional
   }) {
     name
+  }
+}
+
+mutation updateItem {
+  updateInventoryItem(id: "62064709a6e21068b8d11dc3", changes: {
+    name: "Updated Item 1"
+    quantity: 3
+  }) {
+    name,
+    quantity
   }
 }
 
