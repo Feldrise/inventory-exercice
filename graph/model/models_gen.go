@@ -14,7 +14,8 @@ type Login struct {
 }
 
 type NewInventory struct {
-	Name string `json:"name"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type NewInventoryItem struct {

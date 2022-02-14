@@ -10,16 +10,18 @@ import (
 )
 
 type Inventory struct {
-	ID     primitive.ObjectID `bson:"_id"`
-	Name   string             `bson:"name"`
-	UserID primitive.ObjectID `bson:"user_id"`
+	ID          primitive.ObjectID `bson:"_id"`
+	Name        string             `bson:"name"`
+	Description string             `bson:"description"`
+	UserID      primitive.ObjectID `bson:"user_id"`
 }
 
 func (inventory *Inventory) ToModel() *model.Inventory {
 	return &model.Inventory{
-		ID:     inventory.ID.Hex(),
-		Name:   inventory.Name,
-		UserID: inventory.UserID.Hex(),
+		ID:          inventory.ID.Hex(),
+		Name:        inventory.Name,
+		Description: inventory.Description,
+		UserID:      inventory.UserID.Hex(),
 	}
 }
 
@@ -31,9 +33,10 @@ func Create(input model.NewInventory, userID string) *Inventory {
 	}
 
 	databaseInventory := Inventory{
-		ID:     primitive.NewObjectID(),
-		Name:   input.Name,
-		UserID: userObjectID,
+		ID:          primitive.NewObjectID(),
+		Name:        input.Name,
+		Description: input.Description,
+		UserID:      userObjectID,
 	}
 
 	_, err = database.CollectionInventories.InsertOne(database.MongoContext, databaseInventory)

@@ -47,10 +47,11 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Inventory struct {
-		ID    func(childComplexity int) int
-		Items func(childComplexity int) int
-		Name  func(childComplexity int) int
-		User  func(childComplexity int) int
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Items       func(childComplexity int) int
+		Name        func(childComplexity int) int
+		User        func(childComplexity int) int
 	}
 
 	InventoryItem struct {
@@ -118,6 +119,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Inventory.description":
+		if e.complexity.Inventory.Description == nil {
+			break
+		}
+
+		return e.complexity.Inventory.Description(childComplexity), true
 
 	case "Inventory.id":
 		if e.complexity.Inventory.ID == nil {
@@ -424,16 +432,19 @@ input ChangesInventoryItem {
 type Inventory {
   id: ID!
   name: String!
+  description: String!
   user: User!
   items: [InventoryItem!]!
 }
 
 input NewInventory {
   name: String!
+  description: String!
 }
 
 input ChangesInventory {
   name: String
+  description: String
 }
 
 # Endpoints
@@ -758,6 +769,41 @@ func (ec *executionContext) _Inventory_name(ctx context.Context, field graphql.C
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Inventory_description(ctx context.Context, field graphql.CollectedField, obj *model.Inventory) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Inventory",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2917,6 +2963,14 @@ func (ec *executionContext) unmarshalInputNewInventory(ctx context.Context, obj 
 			if err != nil {
 				return it, err
 			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -3047,6 +3101,16 @@ func (ec *executionContext) _Inventory(ctx context.Context, sel ast.SelectionSet
 		case "name":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Inventory_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "description":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Inventory_description(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)

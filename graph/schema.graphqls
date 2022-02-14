@@ -42,16 +42,19 @@ input ChangesInventoryItem {
 type Inventory {
   id: ID!
   name: String!
+  description: String!
   user: User!
   items: [InventoryItem!]!
 }
 
 input NewInventory {
   name: String!
+  description: String!
 }
 
 input ChangesInventory {
   name: String
+  description: String
 }
 
 # Endpoints
