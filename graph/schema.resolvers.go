@@ -71,10 +71,12 @@ func (r *inventoryResolver) Items(ctx context.Context, obj *model.Inventory, fir
 		}, nil
 	}
 
+	hasNextPage := !databaseItems[itemCount-1].IsLast()
+
 	pageInfo := model.InventoryItemPageInfo{
 		StartCursor: base64.StdEncoding.EncodeToString([]byte(edges[0].Node.ID)),
 		EndCursor:   base64.StdEncoding.EncodeToString([]byte(edges[itemCount-1].Node.ID)),
-		// HasNextPage: false,
+		HasNextPage: &hasNextPage,
 	}
 
 	connection := model.InventoryItemConnection{

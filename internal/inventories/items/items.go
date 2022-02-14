@@ -68,6 +68,31 @@ func Update(changes *InventoryItem) {
 	}
 }
 
+func (item InventoryItem) IsLast() bool {
+	filter := bson.D{
+		primitive.E{
+			Key:   "inventory_id",
+			Value: item.InventoryID,
+		},
+	}
+
+	opts := options.FindOptions{}
+	opts.SetLimit(1)
+	opts.SetSort(bson.D{
+		primitive.E{
+			Key: "_id", Value: -1,
+		},
+	})
+
+	lastItem, err := GetFiltered(filter, &opts)
+
+	if err != nil || len(lastItem) <= 0 {
+		return false
+	}
+
+	return lastItem[0].ID == item.ID
+}
+
 func GetAll() ([]InventoryItem, error) {
 	filter := bson.D{{}}
 
