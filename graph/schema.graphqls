@@ -27,6 +27,22 @@ type InventoryItem {
   quantity: Int!
 }
 
+type InventoryItemConnection {
+  edges: [InventoryItemEdge!]!
+  pageInfo: InventoryItemPageInfo!
+}
+
+type InventoryItemEdge {
+  cursor: ID!
+  node: InventoryItem
+}
+
+type InventoryItemPageInfo {
+  startCursor: ID!
+  endCursor: ID!
+  hasNextPage: Boolean
+}
+
 input NewInventoryItem {
   inventoryID: ID!
   name: String!
@@ -44,7 +60,7 @@ type Inventory {
   name: String!
   description: String!
   user: User!
-  items: [InventoryItem!]!
+  items(first: Int = 5, after: ID): InventoryItemConnection!
 }
 
 input NewInventory {

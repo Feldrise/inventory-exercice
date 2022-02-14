@@ -8,6 +8,22 @@ type InventoryItem struct {
 	Quantity int    `json:"quantity"`
 }
 
+type InventoryItemConnection struct {
+	Edges    []*InventoryItemEdge   `json:"edges"`
+	PageInfo *InventoryItemPageInfo `json:"pageInfo"`
+}
+
+type InventoryItemEdge struct {
+	Cursor string         `json:"cursor"`
+	Node   *InventoryItem `json:"node"`
+}
+
+type InventoryItemPageInfo struct {
+	StartCursor string `json:"startCursor"`
+	EndCursor   string `json:"endCursor"`
+	HasNextPage *bool  `json:"hasNextPage"`
+}
+
 type Login struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`

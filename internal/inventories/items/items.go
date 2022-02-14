@@ -7,6 +7,7 @@ import (
 	"feldrise.com/inventory-exercice/internal/database"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type InventoryItem struct {
@@ -70,7 +71,7 @@ func Update(changes *InventoryItem) {
 func GetAll() ([]InventoryItem, error) {
 	filter := bson.D{{}}
 
-	return GetFiltered(filter)
+	return GetFiltered(filter, nil)
 }
 
 func GetAllForInventory(inventoryID string) ([]InventoryItem, error) {
@@ -87,7 +88,7 @@ func GetAllForInventory(inventoryID string) ([]InventoryItem, error) {
 		},
 	}
 
-	return GetFiltered(filter)
+	return GetFiltered(filter, nil)
 }
 
 func GetById(id string) (*InventoryItem, error) {
@@ -104,7 +105,7 @@ func GetById(id string) (*InventoryItem, error) {
 		},
 	}
 
-	inventoryItems, err := GetFiltered(filter)
+	inventoryItems, err := GetFiltered(filter, nil)
 
 	if err != nil {
 		return nil, err
@@ -117,10 +118,47 @@ func GetById(id string) (*InventoryItem, error) {
 	return &inventoryItems[0], nil
 }
 
-func GetFiltered(filter interface{}) ([]InventoryItem, error) {
+func GetPaginated(inventoryID string, startValue *string, first int) ([]InventoryItem, error) {
+	inventoryObjectID, err := primitive.ObjectIDFromHex(inventoryID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var filter interface{}
+
+	if startValue != nil {
+		objectId, err := primitive.ObjectIDFromHex(*startValue)
+
+		if err != nil {
+			return nil, err
+		}
+
+		filter = bson.M{
+			"inventory_id": inventoryObjectID,
+			"_id": bson.M{
+				"$gt": objectId,
+			},
+		}
+	} else {
+		filter = bson.D{
+			primitive.E{
+				Key:   "inventory_id",
+				Value: inventoryObjectID,
+			},
+		}
+	}
+
+	opts := options.Find()
+	opts.SetLimit(int64(first))
+
+	return GetFiltered(filter, opts)
+}
+
+func GetFiltered(filter interface{}, options *options.FindOptions) ([]InventoryItem, error) {
 	inventoryItems := []InventoryItem{}
 
-	cursor, err := database.CollectionInventoryItems.Find(database.MongoContext, filter)
+	cursor, err := database.CollectionInventoryItems.Find(database.MongoContext, filter, options)
 
 	if err != nil {
 		return inventoryItems, err

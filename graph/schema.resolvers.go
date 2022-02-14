@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 
 	"feldrise.com/inventory-exercice/graph/generated"
@@ -32,20 +33,56 @@ func (r *inventoryResolver) User(ctx context.Context, obj *model.Inventory) (*mo
 	return user.ToModel(), nil
 }
 
-func (r *inventoryResolver) Items(ctx context.Context, obj *model.Inventory) ([]*model.InventoryItem, error) {
-	databaseItems, err := items.GetAllForInventory(obj.ID)
+func (r *inventoryResolver) Items(ctx context.Context, obj *model.Inventory, first *int, after *string) (*model.InventoryItemConnection, error) {
+	var decodedCursor *string
+
+	if after != nil {
+		bytes, err := base64.StdEncoding.DecodeString(*after)
+
+		if err != nil {
+			return nil, err
+		}
+
+		decodedCursorString := string(bytes)
+		decodedCursor = &decodedCursorString
+	}
+
+	databaseItems, err := items.GetPaginated(obj.ID, decodedCursor, *first)
 
 	if err != nil {
 		return nil, err
 	}
 
-	items := []*model.InventoryItem{}
+	edges := []*model.InventoryItemEdge{}
 
 	for _, databaseItem := range databaseItems {
-		items = append(items, databaseItem.ToModel())
+		edges = append(edges, &model.InventoryItemEdge{
+			Cursor: base64.StdEncoding.EncodeToString([]byte(databaseItem.ID.Hex())),
+			Node:   databaseItem.ToModel(),
+		})
 	}
 
-	return items, nil
+	itemCount := len(edges)
+
+	if itemCount == 0 {
+		return &model.InventoryItemConnection{
+			Edges:    edges,
+			PageInfo: &model.InventoryItemPageInfo{},
+		}, nil
+	}
+
+	pageInfo := model.InventoryItemPageInfo{
+		StartCursor: base64.StdEncoding.EncodeToString([]byte(edges[0].Node.ID)),
+		EndCursor:   base64.StdEncoding.EncodeToString([]byte(edges[itemCount-1].Node.ID)),
+		// HasNextPage: false,
+	}
+
+	connection := model.InventoryItemConnection{
+		Edges:    edges[:itemCount],
+		PageInfo: &pageInfo,
+	}
+
+	return &connection, nil
 }
 
 func (r *mutationResolver) CreateInventoryItem(ctx context.Context, input model.NewInventoryItem) (*model.InventoryItem, error) {
