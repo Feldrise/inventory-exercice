@@ -2,6 +2,14 @@
 
 This is a simple GraphQL exercise in Golang with gqlgen
 
+## Exemple clients
+There is serval exemple of clients using this API
+
+| Language | Framework | GitHub |
+| -------- | --------- | ------ |
+| Dart     | Flutter & [graphql_flutter](https://pub.dev/packages/graphql_flutter) | [Link](https://github.com/Feldrise/Flutter-GraphQL-Inventory) |
+| TypeScript | NextJS & [Apollo Client](https://www.apollographql.com/) | *Comming Soon* |
+
 ## Exemple queries
 Here you have many exemple that can be use to play around with the API
 
